@@ -166,6 +166,20 @@ inline __device__ void raw_to_comp_load<GPUJPEG_422_U8_P1020>(const uint8_t* d_d
     }
 }
 
+template<>
+inline __device__ void raw_to_comp_load<GPUJPEG_422_U8_P0102>(const uint8_t* d_data_raw, int &image_width, int &image_height, int &image_position, int &x, int &y, uchar4 &r)
+{
+    const unsigned int offset = image_position * 2;
+    r.x = d_data_raw[offset];
+    if ( image_position % 2 == 0 ) {
+        r.y = d_data_raw[offset + 1];
+        r.z = d_data_raw[offset + 3];
+    } else {
+        r.y = d_data_raw[offset - 1];
+        r.z = d_data_raw[offset + 1];
+    }
+}
+
 /**
  * Kernel - Copy raw image source data into three separated component buffers
  */
@@ -242,6 +256,7 @@ gpujpeg_preprocessor_select_encode_kernel(struct gpujpeg_coder* coder)
             case GPUJPEG_444_U8_P012A: return coder->param_image.comp_count == 4 ? &gpujpeg_preprocessor_raw_to_comp_kernel<color_space_internal, COLOR, GPUJPEG_444_U8_P012A, P1, P2, P3, P4, P5, P6> : &gpujpeg_preprocessor_raw_to_comp_kernel<color_space_internal, COLOR, GPUJPEG_444_U8_P012Z, P1, P2, P3, P4, P5, P6>; \
             case GPUJPEG_444_U8_P012Z: return  &gpujpeg_preprocessor_raw_to_comp_kernel<color_space_internal, COLOR, GPUJPEG_444_U8_P012Z, P1, P2, P3, P4, P5, P6>; \
             case GPUJPEG_422_U8_P1020: return &gpujpeg_preprocessor_raw_to_comp_kernel<color_space_internal, COLOR, GPUJPEG_422_U8_P1020, P1, P2, P3, P4, P5, P6>; \
+            case GPUJPEG_422_U8_P0102: return &gpujpeg_preprocessor_raw_to_comp_kernel<color_space_internal, COLOR, GPUJPEG_422_U8_P0102, P1, P2, P3, P4, P5, P6>; \
             case GPUJPEG_444_U8_P0P1P2: return &gpujpeg_preprocessor_raw_to_comp_kernel<color_space_internal, COLOR, GPUJPEG_444_U8_P0P1P2, P1, P2, P3, P4, P5, P6>; \
             case GPUJPEG_422_U8_P0P1P2: return &gpujpeg_preprocessor_raw_to_comp_kernel<color_space_internal, COLOR, GPUJPEG_422_U8_P0P1P2, P1, P2, P3, P4, P5, P6>; \
             case GPUJPEG_420_U8_P0P1P2: return &gpujpeg_preprocessor_raw_to_comp_kernel<color_space_internal, COLOR, GPUJPEG_420_U8_P0P1P2, P1, P2, P3, P4, P5, P6>; \
@@ -384,7 +399,8 @@ gpujpeg_preprocessor_encode_interlaced(struct gpujpeg_encoder * encoder)
 
     // When loading 4:2:2 data of odd width, the data in fact has even width, so round it
     // (at least imagemagick convert tool generates data stream in this way)
-    if (coder->param_image.pixel_format == GPUJPEG_422_U8_P1020) {
+    if (coder->param_image.pixel_format == GPUJPEG_422_U8_P1020 ||
+        coder->param_image.pixel_format == GPUJPEG_422_U8_P0102) {
         image_width = (coder->param_image.width + 1) & ~1;
     }
 

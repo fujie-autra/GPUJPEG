@@ -21,6 +21,7 @@ static void subsampling_name_test() {
                 { GPUJPEG_U8, "4:0:0" },
                 { GPUJPEG_420_U8_P0P1P2, "4:2:0" },
                 { GPUJPEG_422_U8_P1020, "4:2:2" },
+                { GPUJPEG_422_U8_P0102, "4:2:2" },
                 { GPUJPEG_444_U8_P0P1P2, "4:4:4" },
                 { GPUJPEG_444_U8_P012A, "4:4:4:4" },
         };
@@ -77,4 +78,3 @@ int main() {
         encode_gpu_mem_as_cpu();
         printf("PASSED\n");
 }
-

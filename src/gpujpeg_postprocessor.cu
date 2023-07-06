@@ -192,6 +192,17 @@ inline __device__ void gpujpeg_comp_to_raw_store<GPUJPEG_422_U8_P1020>(uint8_t *
     else
         d_data_raw[image_position + 0] = r.z;
 }
+/*
+template<>
+inline __device__ void gpujpeg_comp_to_raw_store<GPUJPEG_422_U8_P0102>(uint8_t *d_data_raw, int &image_width, int &image_height, int &image_position, int &x, int &y, uchar4 &r)
+{
+    image_position = image_position * 2;
+    d_data_raw[image_position + 1] = r.x;
+    if ( (x % 2) == 0 )
+        d_data_raw[image_position + 0] = r.y;
+    else
+        d_data_raw[image_position + 0] = r.z;
+}*/
 
 template<>
 inline __device__ void gpujpeg_comp_to_raw_store<GPUJPEG_420_U8_P0P1P2>(uint8_t *d_data_raw, int &image_width, int &image_height, int &image_position, int &x, int &y, uchar4 &r)
@@ -479,7 +490,8 @@ gpujpeg_preprocessor_decode(struct gpujpeg_coder* coder, cudaStream_t stream)
     int image_height = coder->param_image.height;
 
     // When saving 4:2:2 data of odd width, the data should have even width, so round it
-    if (coder->param_image.pixel_format == GPUJPEG_422_U8_P1020) {
+    if (coder->param_image.pixel_format == GPUJPEG_422_U8_P1020 ||
+        coder->param_image.pixel_format == GPUJPEG_422_U8_P0102) {
         image_width = gpujpeg_div_and_round_up(coder->param_image.width, 2) * 2;
     }
 
